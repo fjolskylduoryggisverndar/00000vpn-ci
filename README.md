@@ -241,7 +241,7 @@ Worker 源码 `XTPU/cloudflare/workers/app-downloads.js`：
 8. **HEAD 不是 formatter-clean**：母版源码仓库上 `dart format --output=none --set-exit-if-changed lib` 会改 105 个文件里的 18 个；fork 源码同源，别跑 `dart format`。
 9. **fork 不带 sing-box 规则集、端点发现被短路**：kamevpn/00000vpn 源码仓库 `git ls-files assets/rules` 为 0；`lib/constants.dart:22-25` 的 `apiBaseUrl` 默认值非空，`lib/network.dart:171-174`、`lib/pages/landing.dart:119` 以 `isNotEmpty` 走「显式配置」分支，跳过 bit.ly → GitHub 发现链。这两点都与 CI 无关，但决定了产物的行为差异。
 10. **Actions 分钟数**：两个账号都是 Free 计划，公开仓库不计费。2026-09-07 `gh api` 按 GitHub 倍率（macOS ×10、Windows ×2）统计 30 天：一个 fork 一次四平台 `build` 折合 ≈132–143 计费分钟（aiglefree-ci：6 次 790 分钟）。转私有前先算清楚。
-11. **公开 Release URL 曾被当作举证材料**：`maskaura-ci` 的 `https://github.com/BuddhaJumpApp/maskaura-ci/releases` 被写进 Microsoft Defender 误报申诉（本地文件 `project/fjolsky/maskaura-false-positive-submission.md`）。ci 仓库转私有或改名会让这类举证失效。
+11. **公开 Release URL 曾被当作举证材料**：`maskaura-ci` 的 `https://github.com/fjolskylduoryggisverndar/maskaura-ci/releases` 被写进 Microsoft Defender 误报申诉（本地文件 `project/fjolsky/maskaura-false-positive-submission.md`）。ci 仓库转私有或改名会让这类举证失效。
 12. **Android JNA 两层锁**（源码仓库 `android/app/build.gradle.kts` 固定 `jna:5.17.0@aar`，`proguard-rules.pro` 有 `-keep class com.sun.jna.**`）、**macOS 主 App 不能带 `network.server`**（`macos/Runner/Release.entitlements` 注释）、**Win32 `Create()` 会先跑一次 `OnDestroy()`**（`windows/runner/flutter_window.cpp` 的守卫）——这三条在母版源码里有证据，fork 源码是从母版回移的，回移时别漏。
 
 ---
