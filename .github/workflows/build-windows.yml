@@ -280,7 +280,7 @@ jobs:
             --build-windows false \
             -e "internetClient, privateNetworkClientServer" \
             -d "${DISPLAY_NAME}" \
-            -l "assets/logo.png" \
+            -l "assets/logo_launcher.png" \
             -u "${{ secrets.PARTNER_COMPANY }}" \
             -i "${{ secrets.PARTNER_APP }}" \
             --version "${MSIX_VERSION}" \
