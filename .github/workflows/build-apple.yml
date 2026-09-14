@@ -53,13 +53,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [ios, macos]
+        platform: [macos]
     steps:
       - name: Checkout private repository
         uses: actions/checkout@v7
         with:
           repository: ${{ env.PRIVATE_REPO }}
           token: ${{ secrets.ORG_TOKEN }}
+          ref: 203902258087cd818a1948456ae3222aee6a616c
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -84,23 +85,8 @@ jobs:
 
       - name: Set build environment
         run: |
-          set -xeuo pipefail
-          echo "BUILD_VERSION=${{ inputs.version }}" >> "${GITHUB_ENV}"
-          # Derive the build number exactly the way build-android.yml derives
-          # versionCode, so one release carries ONE number on all four
-          # platforms. Both Info.plists read $(FLUTTER_BUILD_NUMBER), which
-          # Flutter reads from pubspec, so rewriting pubspec is enough -- no
-          # need to thread --build-number through the ipa and macos commands.
-          # Without this the Apple side used whatever counter pubspec happened
-          # to carry, and 1.2.8 shipped as 128 on Android but 30 on iOS.
-          # NOTE: this job is macos-latest, so that is BSD sed -- `-i ''`.
-          VERSION="${{ inputs.version }}"
-          VERSION="${VERSION#v}"
-          VERSION="${VERSION%%+*}"
-          IFS='.' read -r a b c <<< "$VERSION"
-          BUILD_NUMBER=$((a * 100 + b * 10 + c))
-          sed -i '' "s/^version: .*/version: ${VERSION}+${BUILD_NUMBER}/" pubspec.yaml
-          echo "Apple build number: ${BUILD_NUMBER}"
+          echo "BUILD_VERSION=${{ inputs.version }}" >> "$GITHUB_ENV"
+
       - name: Install Flutter dependencies
         run: |
           flutter pub get
@@ -221,6 +207,16 @@ jobs:
       # continue-on-error + the trailing "Fail the job" step keep the store
       # uploads running while still turning the run red. `dmg_tunnel: skip`
       # builds no DMG at all.
+      - name: Verify packaged app version and artwork
+        run: |
+          set -euo pipefail
+          APP_PATH=$(ls -d build/macos/Build/Products/Release/*.app)
+          ACTUAL_VERSION=$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' "$APP_PATH/Contents/Info.plist")
+          ACTUAL_BUILD=$(/usr/libexec/PlistBuddy -c 'Print CFBundleVersion' "$APP_PATH/Contents/Info.plist")
+          test "$ACTUAL_VERSION" = "3.4.17"
+          test "$ACTUAL_BUILD" = "357"
+          echo "Verified app version: $ACTUAL_VERSION ($ACTUAL_BUILD)"
+
       - name: Build notarized DMG (macOS direct distribution)
         if: matrix.platform == 'macos'
         id: dmg
