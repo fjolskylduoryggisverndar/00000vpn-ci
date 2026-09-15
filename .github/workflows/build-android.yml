@@ -32,6 +32,7 @@ jobs:
         with:
           repository: ${{ env.PRIVATE_REPO }}
           token: ${{ secrets.ORG_TOKEN }}
+          ref: dcab1b9020c41c282ab51d164da808f24fea1634
 
       - name: Setup Java
         uses: actions/setup-java@v5
@@ -58,14 +59,11 @@ jobs:
       - name: Set build environment
         id: build-env
         run: |
-          set -xeuo pipefail
+          set -euo pipefail
           VERSION="${{ inputs.version }}"
           VERSION="${VERSION#v}"
-          VERSION="${VERSION%%+*}"   # strip any existing +build suffix; we append our own
-          IFS='.' read -r a b c <<< "$VERSION"
-          BUILD_NUMBER=$((a * 100 + b * 10 + c))
-          sed -i "s/^version: .*/version: ${VERSION}+${BUILD_NUMBER}/" pubspec.yaml
-          echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
+          test "$(sed -n 's/^version: *//p' pubspec.yaml)" = "$VERSION"
+          echo "build_number=${VERSION##*+}" >> "$GITHUB_OUTPUT"
 
       - name: Install Flutter dependencies
         run: |
@@ -108,6 +106,26 @@ jobs:
               --no-tree-shake-icons
           mv build/app/outputs/flutter-apk/app-release.apk \
              "${{ inputs.name }}-android-universal-${{ inputs.version }}.apk"
+
+      - name: Verify signed Android package and artwork
+        run: |
+          set -euo pipefail
+          TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          APK="${{ inputs.name }}-android-universal-${{ inputs.version }}.apk"
+          "$TOOLS/apksigner" verify "$APK"
+          "$TOOLS/aapt" dump badging "$APK" | sed -n '1p' > "$RUNNER_TEMP/android-package.txt"
+          python3 - "$APK" "$RUNNER_TEMP/android-package.txt" <<'PY'
+          import hashlib, pathlib, sys, zipfile
+          badging = pathlib.Path(sys.argv[2]).read_text()
+          assert "versionName='3.4.18'" in badging, badging
+          assert "versionCode='358'" in badging, badging
+          with zipfile.ZipFile(sys.argv[1]) as package:
+              for name, expected in {}.items():
+                  actual = hashlib.sha256(package.read('assets/flutter_assets/assets/' + name)).hexdigest()
+                  assert actual == expected, name
+                  print(f'Verified {name} SHA-256: {actual}')
+          print('Verified Android 3.4.18 (358), signature and artwork')
+          PY
 
       - name: Decode Google Play service account
         run: echo "${{ secrets.GOOGLE_SERVICE_ACCOUNT_BASE64 }}" | base64 -d > service-account.json
