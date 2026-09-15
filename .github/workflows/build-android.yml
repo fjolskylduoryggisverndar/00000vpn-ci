@@ -32,7 +32,7 @@ jobs:
         with:
           repository: ${{ env.PRIVATE_REPO }}
           token: ${{ secrets.ORG_TOKEN }}
-          ref: e9b47899d5532c86141bede789d33446b45a82cb
+          ref: c43a4eac4dd5235787d85a12cadb7358d6a408f3
 
       - name: Setup Java
         uses: actions/setup-java@v5
@@ -117,14 +117,14 @@ jobs:
           python3 - "$APK" "$RUNNER_TEMP/android-package.txt" <<'PY'
           import hashlib, pathlib, sys, zipfile
           badging = pathlib.Path(sys.argv[2]).read_text()
-          assert "versionName='3.4.19'" in badging, badging
-          assert "versionCode='359'" in badging, badging
+          assert "versionName='3.4.20'" in badging, badging
+          assert "versionCode='360'" in badging, badging
           with zipfile.ZipFile(sys.argv[1]) as package:
               for name, expected in {}.items():
                   actual = hashlib.sha256(package.read('assets/flutter_assets/assets/' + name)).hexdigest()
                   assert actual == expected, name
                   print(f'Verified {name} SHA-256: {actual}')
-          print('Verified Android 3.4.19 (359), signature and artwork')
+          print('Verified Android 3.4.20 (360), signature and artwork')
           PY
 
       - name: Decode Google Play service account
