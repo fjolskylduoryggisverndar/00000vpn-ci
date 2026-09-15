@@ -57,7 +57,7 @@ jobs:
         with:
           repository: ${{ env.PRIVATE_REPO }}
           token: ${{ secrets.ORG_TOKEN }}
-          ref: dcab1b9020c41c282ab51d164da808f24fea1634
+          ref: e9b47899d5532c86141bede789d33446b45a82cb
 
       - name: Get name and version from pubspec.yaml
         id: get-info
