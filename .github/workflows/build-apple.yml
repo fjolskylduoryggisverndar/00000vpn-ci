@@ -60,7 +60,7 @@ jobs:
         with:
           repository: ${{ env.PRIVATE_REPO }}
           token: ${{ secrets.ORG_TOKEN }}
-          ref: 203902258087cd818a1948456ae3222aee6a616c
+          ref: dcab1b9020c41c282ab51d164da808f24fea1634
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -213,8 +213,8 @@ jobs:
           APP_PATH=$(ls -d build/macos/Build/Products/Release/*.app)
           ACTUAL_VERSION=$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' "$APP_PATH/Contents/Info.plist")
           ACTUAL_BUILD=$(/usr/libexec/PlistBuddy -c 'Print CFBundleVersion' "$APP_PATH/Contents/Info.plist")
-          test "$ACTUAL_VERSION" = "3.4.17"
-          test "$ACTUAL_BUILD" = "357"
+          test "$ACTUAL_VERSION" = "3.4.18"
+          test "$ACTUAL_BUILD" = "358"
           echo "Verified app version: $ACTUAL_VERSION ($ACTUAL_BUILD)"
 
       - name: Build notarized DMG (macOS direct distribution)
